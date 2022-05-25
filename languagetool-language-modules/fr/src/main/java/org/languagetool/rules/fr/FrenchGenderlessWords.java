@@ -84,40 +84,63 @@ public class FrenchGenderlessWords extends Rule {
     // No let's iterate over those - note that the first token will
     // be a special token that indicates the start of a sentence:
     for (AnalyzedTokenReadings token : tokens) {
+
+      boolean hasFemininAndMasculin = false;
+      boolean canBeAdjective = false;
+      boolean canBeNoun = false;
+
       
       System.out.println("Token: " + token.getToken());  // the original word from the input text
       
       // A word can have more than one reading, e.g. 'dance' can be a verb or a noun,
       // so we iterate over the readings:
       for (AnalyzedToken analyzedToken : token.getReadings()) {
-        try {
-          System.out.println("  Féminin : " + Arrays.deepToString(frenchSynth.synthesize(analyzedToken,"N f p")));
-        }
-        catch(IOException e) {
-          System.out.println("  Féminin : None");
-        }
-        try {
-          System.out.println("  Masculin : " + Arrays.deepToString(frenchSynth.synthesize(analyzedToken,"N m p")));
-        }
-        catch(IOException e) {
-          System.out.println("  Masculin : None");
-        }
+        String POSTag = analyzedToken.getPOSTag();
 
+        if (POSTag != null){
 
-        System.out.println("  Lemma: " + analyzedToken.getLemma());
-        System.out.println("  POS: " + analyzedToken.getPOSTag());
+          System.out.println("    analyzedToken: " + analyzedToken);
+          System.out.println("    analyzedToken POS: " + POSTag );
+
+          if (POSTag.contains("N")){
+            canBeNoun = true;
+          }
+          if (POSTag.contains("J")){
+            canBeAdjective = true;
+          }
+
+          //we only want to keep plural words
+          if (POSTag.contains("p")) {
+
+            List<String> feminin = new ArrayList<String>();
+            List<String> masculin = new ArrayList<String>();
+
+            try {
+              feminin = Arrays.asList(frenchSynth.synthesize(analyzedToken,"N f p"));
+              System.out.println("  Féminin : " + feminin);
+            }
+            catch(IOException e) {
+              System.out.println("  Féminin : None");
+            }
+            try {
+              masculin = Arrays.asList(frenchSynth.synthesize(analyzedToken,"N m p"));
+              System.out.println("  Masculin : " + masculin);
+            }
+            catch(IOException e) {
+              System.out.println("  Masculin : None");
+            }
+            if (feminin.size() > 0 && masculin.size() > 0) {
+              hasFemininAndMasculin = true;
+            }
+          }
+        }
       }
-      
-      // You can add your own logic here to find errors. Here, we just consider
-      // the word "demo" an error and create a rule match that LanguageTool will
-      // then show to the user:
-      if (token.getToken().equals("téléphone")) {
-        RuleMatch ruleMatch = new RuleMatch(this, sentence, token.getStartPos(), token.getEndPos(), "The demo rule thinks this looks wrong");
+      if (hasFemininAndMasculin && canBeAdjective && canBeNoun){
+        RuleMatch ruleMatch = new RuleMatch(this, sentence, token.getStartPos(), token.getEndPos(), "Considérez une écriture inclusive");
         ruleMatch.setSuggestedReplacement("blablah");  // the user will see this as a suggested correction
         ruleMatches.add(ruleMatch);
       }
     }
-
     return toRuleMatchArray(ruleMatches);
   }
 
