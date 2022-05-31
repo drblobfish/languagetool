@@ -91,6 +91,11 @@ public class FrenchGenderlessWords extends Rule {
 
       
       System.out.println("Token: " + token.getToken());  // the original word from the input text
+
+      List<String> feminin = new ArrayList<String>();
+      List<String> masculin = new ArrayList<String>();
+
+      String neutre = new String();
       
       // A word can have more than one reading, e.g. 'dance' can be a verb or a noun,
       // so we iterate over the readings:
@@ -110,10 +115,7 @@ public class FrenchGenderlessWords extends Rule {
           }
 
           //we only want to keep plural words
-          if (POSTag.contains("p")) {
-
-            List<String> feminin = new ArrayList<String>();
-            List<String> masculin = new ArrayList<String>();
+          if (POSTag.contains("p")) {           
 
             try {
               feminin = Arrays.asList(frenchSynth.synthesize(analyzedToken,"N f p"));
@@ -131,17 +133,60 @@ public class FrenchGenderlessWords extends Rule {
             }
             if (feminin.size() > 0 && masculin.size() > 0) {
               hasFemininAndMasculin = true;
+              neutre = Ecritureneutre(masculin.get(0),feminin.get(0));
             }
           }
         }
       }
       if (hasFemininAndMasculin && canBeAdjective && canBeNoun){
         RuleMatch ruleMatch = new RuleMatch(this, sentence, token.getStartPos(), token.getEndPos(), "Considérez une écriture inclusive");
-        ruleMatch.setSuggestedReplacement("blablah");  // the user will see this as a suggested correction
+        ruleMatch.setSuggestedReplacement(neutre);  // the user will see this as a suggested correction
         ruleMatches.add(ruleMatch);
       }
     }
     return toRuleMatchArray(ruleMatches);
+  }
+
+  private  String Ecritureneutre(String  masc, String  fem){
+
+    Boolean stem = true;
+    String nonbinaire = "";
+    int finstem = 0;
+
+    for(int i = 0; i<masc.length(); i++) {
+
+          // access each character
+          char a = masc.charAt(i);
+          char b = fem.charAt(i);
+          if (a==b && stem) {
+            // block of code to be executed if the condition is true
+            nonbinaire = nonbinaire+a;
+
+        }
+        if (a!=b) {
+            // block of code to be executed if the condition is true
+            if (stem) {
+                finstem = i;
+            }
+            stem = false;
+        }
+    }
+
+    if (masc.endsWith("s") && fem.endsWith("s")) {
+        System.out.println("s");
+        nonbinaire += masc.substring(finstem,masc.length()-1);
+        nonbinaire+= "."+fem.substring(finstem,fem.length()-1)+".s";
+    }
+    else if (masc.endsWith("aux") && fem.endsWith("lles")) {
+
+        nonbinaire += fem.substring(finstem,fem.length()-1);
+        nonbinaire+= "."+masc.substring(finstem,masc.length());
+    }
+    else{
+    nonbinaire += masc.substring(finstem);
+    nonbinaire+= "."+fem.substring(finstem);
+    }
+    return nonbinaire;
   }
 
 }
