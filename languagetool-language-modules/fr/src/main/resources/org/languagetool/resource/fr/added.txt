@@ -793,3 +793,12 @@ CAE;CAE;Z e sp
 Danzig;Danzig;Z e sp
 Lesser;Lesser;Z e sp
 ULB;ULB;Z e sp
+# Inclusive writing
+chercheureuses;chercheurs;N e p
+chercheur·euses;chercheurs;N e p
+étudianz;étudiants;N e p
+étudiant·es;étudiants;N e p
+enseignanz;enseignants;N e p
+enseignant·es;enseignants;N e p
+salarié·es;salariés;N e p
+salariæs;salariés;N e p
