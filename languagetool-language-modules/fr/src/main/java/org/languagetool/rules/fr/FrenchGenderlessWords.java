@@ -153,7 +153,7 @@ public class FrenchGenderlessWords extends Rule {
           }
         }
       }
-      if (hasEpicene){// && canBeAdjective && canBeNoun){
+      if (hasEpicene && canBeAdjective && canBeNoun){
         RuleMatch ruleMatch = new RuleMatch(this, sentence, token.getStartPos(), token.getEndPos(), "Considérez une écriture inclusive");
 
         ruleMatch.addSuggestedReplacements(replacement);  // the user will see this as a suggested correction
