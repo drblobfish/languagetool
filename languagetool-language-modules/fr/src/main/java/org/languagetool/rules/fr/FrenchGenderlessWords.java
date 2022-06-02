@@ -34,6 +34,7 @@ import org.languagetool.synthesis.FrenchSynthesizer;
 import org.languagetool.synthesis.Synthesizer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -86,6 +87,7 @@ public class FrenchGenderlessWords extends Rule {
     for (AnalyzedTokenReadings token : tokens) {
 
       boolean hasFemininAndMasculin = false;
+      boolean hasEpicene = false;
       boolean canBeAdjective = false;
       boolean canBeNoun = false;
 
@@ -94,8 +96,10 @@ public class FrenchGenderlessWords extends Rule {
 
       List<String> feminin = new ArrayList<String>();
       List<String> masculin = new ArrayList<String>();
+      List<String> epicene = new ArrayList<String>();
 
       String neutre = new String();
+      List<String> replacement = new ArrayList<String>();
       
       // A word can have more than one reading, e.g. 'dance' can be a verb or a noun,
       // so we iterate over the readings:
@@ -125,11 +129,22 @@ public class FrenchGenderlessWords extends Rule {
               System.out.println("  Féminin : None");
             }
             try {
+              epicene = Arrays.asList(frenchSynth.synthesize(analyzedToken,"N e p"));
+              System.out.println("  Epicene : " + epicene);
+            }
+            catch(IOException e) {
+              System.out.println("  Epicene : None");
+            }
+            try {
               masculin = Arrays.asList(frenchSynth.synthesize(analyzedToken,"N m p"));
               System.out.println("  Masculin : " + masculin);
             }
             catch(IOException e) {
               System.out.println("  Masculin : None");
+            }
+            if (epicene.size() > 0 ) {
+              hasEpicene = true;
+              replacement = new ArrayList<String>(epicene);
             }
             if (feminin.size() > 0 && masculin.size() > 0) {
               hasFemininAndMasculin = true;
@@ -138,9 +153,11 @@ public class FrenchGenderlessWords extends Rule {
           }
         }
       }
-      if (hasFemininAndMasculin && canBeAdjective && canBeNoun){
+      if (hasEpicene){// && canBeAdjective && canBeNoun){
         RuleMatch ruleMatch = new RuleMatch(this, sentence, token.getStartPos(), token.getEndPos(), "Considérez une écriture inclusive");
-        ruleMatch.setSuggestedReplacement(neutre);  // the user will see this as a suggested correction
+
+        ruleMatch.addSuggestedReplacements(replacement);  // the user will see this as a suggested correction
+        
         ruleMatches.add(ruleMatch);
       }
     }
